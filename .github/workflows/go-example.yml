@@ -1,0 +1,59 @@
+name: Go Example
+env:
+    FILE_NAME: hello-server # Definindo a variável de ambiente
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+  schedule:
+  - cron: "*/15 * * * 1-6"
+  
+jobs:
+  job1:
+    runs-on: ubuntu-latest # Definir o runner
+    steps:
+    # Step 1: Fazer o checkout do repositório
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    # Step 2: Build do Go para Linux
+    - name: Build Go for Linux
+      run: go build ${{ env.FILE_NAME }}.go
+
+    - name: Upload artifact for linux
+      uses: actions/upload-artifact@v1.0.0
+      with:
+        name: linux
+        path: ./${{ env.FILE_NAME }}
+
+    - name: Download artifact for linux
+      uses: actions/download-artifact@v1.0.0
+
+    - name: Run script on Linux
+      run: |
+        chmod +x ./run.sh
+        ./run.sh
+
+  job2:
+    name: Build Go for Windows
+    runs-on: ubuntu-latest # Definir o runner
+    steps:
+      # Step 1: Fazer o checkout do repositório
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      # Step 3: Build do Go para Windows
+      - name: Build Go for Windows
+        run: GOOS=windows GOARCH=amd64 go build ${{ env.FILE_NAME }}.go
+
+      - name: Upload artifact for windows
+        uses: actions/upload-artifact@v1.0.0
+        with:
+          name: windows
+          path: ./${{ env.FILE_NAME }}.exe
+
+      - name: Download artifact for windows
+        uses: actions/download-artifact@v1.0.0
+        with:
+          name: windows
+          path: ./
